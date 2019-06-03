@@ -12,6 +12,7 @@ by Pacman agents (in searchAgents.py).
 """
 
 import util
+from Queue import Queue, PriorityQueue
 
 class SearchProblem:
     """
@@ -95,10 +96,11 @@ def depthFirstSearch(problem):
 
     To get started, you might want to try some of these simple commands to
     understand the search problem that is being passed in:
-    """
+    
     print "Start:", problem.getStartState()
     print "Is the start a goal?", problem.isGoalState(problem.getStartState())
     print "Start's successors:", problem.getSuccessors(problem.getStartState())
+    """
 
     parent = {}
     parent_move = {}
@@ -126,9 +128,56 @@ def breadthFirstSearch(problem):
     """
     Search the shallowest nodes in the search tree first.
     """
+    parent = {}
+    parent_move = {}
+    Q = Queue()
+
+    Q.put(problem.getStartState())
+    while not Q.empty():
+        v = Q.get()
+        if problem.isGoalState(v):
+            solution = []
+            while v != problem.getStartState():
+                solution.append(parent_move[v])
+                v = parent[v]
+            solution.reverse()
+            return solution
+
+        for (w, d, c) in problem.getSuccessors(v):
+            if w not in parent:
+                parent[w] = v
+                parent_move[w] = d
+                Q.put(w)
+    raise Exception("oh no")
 
 def uniformCostSearch(problem):
     "Search the node of least total cost first."
+    parent = {}
+    parent_move = {}
+    distance = {}
+    Q = PriorityQueue()
+
+    Q.put((0, problem.getStartState()))
+    distance[problem.getStartState()] = 0   
+    while not Q.empty():
+        (d, v) = Q.get()
+        if problem.isGoalState(v):
+            solution = []
+            while v != problem.getStartState():
+                solution.append(parent_move[v])
+                v = parent[v]
+            solution.reverse()
+            return solution
+
+        for (w, direction, c) in problem.getSuccessors(v):
+            print c
+            if w not in parent or distance[w] > c+d :
+                parent[w] = v
+                parent_move[w] = direction
+                distance[w] = c+d
+                Q.put((c+d, w))
+                
+    raise Exception("oh no")
 
 def nullHeuristic(state, problem=None):
     """
@@ -139,6 +188,33 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     "Search the node that has the lowest combined cost and heuristic first."
+    heur = lambda x, problem=problem: 4 * heuristic(x, problem)
+    parent = {}
+    parent_move = {}
+    distance = {}
+    Q = PriorityQueue()
+    raiz = problem.getStartState()
+    Q.put((heur(raiz), 0, raiz))
+    distance[raiz] = 0   
+    while not Q.empty():
+        (h, d, v) = Q.get()
+        if problem.isGoalState(v):
+            solution = []
+            while v != raiz:
+                solution.append(parent_move[v])
+                v = parent[v]
+            solution.reverse()
+            return solution
+
+        for (w, direction, c) in problem.getSuccessors(v):
+            print heur(w, problem)
+            if w not in parent or distance[w] > c+d :
+                parent[w] = v
+                parent_move[w] = direction
+                distance[w] = c+d
+                Q.put((heur(w)+c+d, c+d, w))
+                
+    raise Exception("oh no")
 
 # Abbreviations
 bfs = breadthFirstSearch
