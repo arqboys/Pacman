@@ -95,11 +95,32 @@ def depthFirstSearch(problem):
 
     To get started, you might want to try some of these simple commands to
     understand the search problem that is being passed in:
-
+    """
     print "Start:", problem.getStartState()
     print "Is the start a goal?", problem.isGoalState(problem.getStartState())
     print "Start's successors:", problem.getSuccessors(problem.getStartState())
-    """
+
+    parent = {}
+    parent_move = {}
+    Q = []
+
+    Q.append(problem.getStartState())
+    while len(Q) > 0:
+        v = Q.pop()
+        if problem.isGoalState(v):
+            solution = []
+            while v != problem.getStartState():
+                solution.append(parent_move[v])
+                v = parent[v]
+            solution.reverse()
+            return solution
+
+        for (w, d, c) in problem.getSuccessors(v):
+            if w not in parent:
+                parent[w] = v
+                parent_move[w] = d
+                Q.append(w)
+    raise Exception("oh no")
 
 def breadthFirstSearch(problem):
     """
