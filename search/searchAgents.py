@@ -31,10 +31,12 @@ Good luck and happy searching!
 from game import Directions
 from game import Agent
 from game import Actions
+from itertools import permutations
 import util
 import time
 import search
 import searchAgents
+import random
 
 class GoWestAgent(Agent):
     "An agent that goes West until it can't."
@@ -259,18 +261,28 @@ class CornersProblemState():
     def __init__(self,pos,corner):
         self.position = pos
         self.corner = corner
+
     def isGoal(self):
         return len(self.corner) == 0
+
     def getPosition(self):
         return self.position
+
     def getCorners(self):
         return self.corner
+
+    def eraseCorner(self, corner):
+        self.corner = tuple(c for c in self.corner if c != corner)
+
     def __str__(self):
         return "state: " + str(self.position) + " " + str(self.corner)
+
     def __as_tuple__(self):
         return (self.position, self.corner)
+
     def __eq__(self, self2):
         return self.__as_tuple__() == self2.__as_tuple__()
+
     def __hash__(self):
         return hash(self.__as_tuple__())
 
@@ -296,6 +308,7 @@ class CornersProblem(search.SearchProblem):
         top, right = self.walls.height-2, self.walls.width-2
         self.corners = ((1,1), (1,top), (right, 1), (right, top))
         self.startingState = CornersProblemState(self.startingPosition, self.corners)
+
         for corner in self.corners:
             if not startingGameState.hasFood(*corner):
                 print 'Warning: no food in corner ' + str(corner)
@@ -305,6 +318,7 @@ class CornersProblem(search.SearchProblem):
 
     def getStartState(self):
         "Returns the start state (in your state space, not the full Pacman state space)"
+        self.startingState.eraseCorner(self.startingPosition)
         return self.startingState
 
     def isGoalState(self, state):
@@ -333,7 +347,6 @@ class CornersProblem(search.SearchProblem):
                 newCorners = tuple(c for c in corners if c != (nextx,nexty))
                 nextState = CornersProblemState((nextx, nexty), newCorners)
                 cost = self.costFn(nextState)
-                print(nextState)
                 successors.append( ( nextState, action, cost) )
 
         self._expanded += 1
@@ -373,8 +386,21 @@ def cornersHeuristic(state, problem):
     corners = problem.corners # These are the corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
+    if state.getCorners() == ():
+        return 0 # Default to trivial solution
+
+    dist = lambda (x1, y1), (x2, y2) : abs(x1-x2) + abs(y1-y2)
+
     "*** YOUR CODE HERE ***"
-    return 0 # Default to trivial solution
+    # TSP
+    hmin = float('inf')
+    for t in permutations(state.getCorners()):
+        h = dist(state.getPosition(), t[0])
+        for i in range(0, len(t)-1):
+            h += dist(t[i], t[i+1])
+        hmin = min(h, hmin)
+
+    return hmin
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
@@ -438,6 +464,8 @@ class AStarFoodSearchAgent(SearchAgent):
         self.searchFunction = lambda prob: search.aStarSearch(prob, foodHeuristic)
         self.searchType = FoodSearchProblem
 
+
+
 def foodHeuristic(state, problem):
     """
     Your heuristic for the FoodSearchProblem goes here.
@@ -464,8 +492,15 @@ def foodHeuristic(state, problem):
     Subsequent calls to this heuristic can access problem.heuristicInfo['wallCount']
     """
     position, foodGrid = state
+
     "*** YOUR CODE HERE ***"
-    return 0
+
+    food = foodGrid.asList()
+
+    dist = lambda (x1, y1), (x2, y2) : abs(x1-x2) + abs(y1-y2)
+
+    # Z-Norm heuristic
+    return sum(10**-(dist(position, x)/50) for x in food)
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"

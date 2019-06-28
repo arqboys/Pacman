@@ -96,7 +96,7 @@ def depthFirstSearch(problem):
 
     To get started, you might want to try some of these simple commands to
     understand the search problem that is being passed in:
-    
+
     print "Start:", problem.getStartState()
     print "Is the start a goal?", problem.isGoalState(problem.getStartState())
     print "Start's successors:", problem.getSuccessors(problem.getStartState())
@@ -158,7 +158,7 @@ def uniformCostSearch(problem):
     Q = PriorityQueue()
 
     Q.put((0, problem.getStartState()))
-    distance[problem.getStartState()] = 0   
+    distance[problem.getStartState()] = 0
     while not Q.empty():
         (d, v) = Q.get()
         if problem.isGoalState(v):
@@ -170,13 +170,12 @@ def uniformCostSearch(problem):
             return solution
 
         for (w, direction, c) in problem.getSuccessors(v):
-            print c
             if w not in parent or distance[w] > c+d :
                 parent[w] = v
                 parent_move[w] = direction
                 distance[w] = c+d
                 Q.put((c+d, w))
-                
+
     raise Exception("oh no")
 
 def nullHeuristic(state, problem=None):
@@ -195,7 +194,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     Q = PriorityQueue()
     raiz = problem.getStartState()
     Q.put((heur(raiz), 0, raiz))
-    distance[raiz] = 0   
+    distance[raiz] = 0
     while not Q.empty():
         (h, d, v) = Q.get()
         if problem.isGoalState(v):
@@ -207,13 +206,12 @@ def aStarSearch(problem, heuristic=nullHeuristic):
             return solution
 
         for (w, direction, c) in problem.getSuccessors(v):
-            print heur(w, problem)
             if w not in parent or distance[w] > c+d :
                 parent[w] = v
                 parent_move[w] = direction
                 distance[w] = c+d
                 Q.put((heur(w)+c+d, c+d, w))
-                
+
     raise Exception("oh no")
 
 # Abbreviations
